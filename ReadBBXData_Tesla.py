@@ -446,7 +446,7 @@ def CalculateFieldTime(m):
             f2.write('Total Time: %d seconds' % (ART1))
             f2.write('(%dyear, %ddays %s)\n' % (ARY1, ARD1, ARHMS11))
             f2.write('Operation Day=%.3f Days\n' % ODays1)
-            f2.write('DutyCycle=%.1f%%\n' % dutyCycle1)
+            f2.write('DutyCycle=%.3f%%\n' % dutyCycle1)
 
     #2nd GPU Field Time calculate
     elif m==1:
@@ -547,7 +547,7 @@ def CalculateFieldTime(m):
             f2.write('Total Time: %d seconds' % (ART2))
             f2.write('(%dyear, %ddays %s)\n' % (ARY2, ARD2, ARHMS22))
             f2.write('Operation Day=%.3f Days\n' % ODays2)
-            f2.write('DutyCycle=%.1f%%\n' % dutyCycle2)
+            f2.write('DutyCycle=%.3f%%\n' % dutyCycle2)
 
     #One GPU Field Time calculate
     if m==3:
@@ -638,7 +638,7 @@ def CalculateFieldTime(m):
             f2.write('Total Time: %d seconds' % (ART1))
             f2.write('(%dyear, %ddays %s)\n' % (ARY1, ARD1, ARHMS11))
             f2.write('Operation Day=%.3f Days\n' % ODays1)
-            f2.write('DutyCycle=%.1f%%\n' % dutyCycle1)
+            f2.write('DutyCycle=%.3f%%\n' % dutyCycle1)
 
 
     f1.close()
@@ -2003,114 +2003,160 @@ def XID(z):
 
     i=0
     Mark=0
-    XidNumber = []
-    XidNumberLoc=[]
+    XidNumberAllList = []
+    NvidiaRMDriverAllList=[]
 
     #One GPU
     if z==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0)<i<BBXDataLoc(0)+1300:
-                if 'Xid number:' in Line1:
+            if BBXDataLoc(0)<i<BBXDataLoc(0)+1500:
+                if 'Xid number' in Line1:
                     Xid=int(linecache.getline(file1, i)[-3:-1])
-                    XidLoc=i
-                    XidNumber.append(Xid)
-                    XidNumberLoc.append(XidLoc)
+                    NvidiaRMDriver=int(linecache.getline(file1,i+6 )[-7:-1])
+                    XidNumberAllList.append(Xid)
+                    NvidiaRMDriverAllList.append(NvidiaRMDriver)
 
-        XidNumberSet=set(XidNumber)
+        XidNumberSet=set(XidNumberAllList)
         XidNumberList=[k for k in XidNumberSet]#'Set' change to 'List'
+        NvidiaRMDriverSet=set(NvidiaRMDriverAllList)
+        NvidiaRMDriverList=[m for m in NvidiaRMDriverSet]
         if len(XidNumberList)>0:
             for j in range(0, len(XidNumberList)):
-                for l in range(0,len(XidNumber)):
-                    if XidNumberList[j]==XidNumber[l]:
-                        NvidiaRMDriver=int(linecache.getline(file1,XidNumberLoc[l]+6 )[-7:-1])
-                        #print('NvidiaRMDriver=',NvidiaRMDriver)
+                for l in range(0,len(XidNumberAllList)):
+                    if XidNumberList[j]==XidNumberAllList[l]:
                         if Mark==0:
-                            f2.write('XidNumber(rmDriverVersion):' )
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write('XidNumber(rmDriverVersion):')
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
                             Mark=1
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
                         elif Mark==1:
                             f2.write(',')
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
 
-        f2.write('\n')
-        if Mark==1:
-            Mark=0
+            f2.write('\n')
+            if Mark==1:
+                Mark=0
+
 
     #Two GPU
-    i=0
-    if z==0:#1st GPU
-        for Line2 in f3:
+    if z==0: #1st GPU
+        for Line1 in f1:
             i=i+1
             if BBXDataLoc(0)<i<BBXDataLoc(1):
-                if 'Xid number:' in Line2:
+                if 'Xid number' in Line1:
                     Xid=int(linecache.getline(file1, i)[-3:-1])
-                    XidLoc=i
-                    XidNumber.append(Xid)
-                    XidNumberLoc.append(XidLoc)
+                    NvidiaRMDriver=int(linecache.getline(file1,i+6 )[-7:-1])
+                    XidNumberAllList.append(Xid)
+                    NvidiaRMDriverAllList.append(NvidiaRMDriver)
 
-        XidNumberSet=set(XidNumber)
+        XidNumberSet=set(XidNumberAllList)
         XidNumberList=[k for k in XidNumberSet]#'Set' change to 'List'
+        NvidiaRMDriverSet=set(NvidiaRMDriverAllList)
+        NvidiaRMDriverList=[m for m in NvidiaRMDriverSet]
         if len(XidNumberList)>0:
             for j in range(0, len(XidNumberList)):
-                for l in range(0,len(XidNumber)):
-                    if XidNumberList[j]==XidNumber[l]:
-                        NvidiaRMDriver=int(linecache.getline(file1,XidNumberLoc[l]+6 )[-7:-1])
-                        #print('NvidiaRMDriver=',NvidiaRMDriver)
+                for l in range(0,len(XidNumberAllList)):
+                    if XidNumberList[j]==XidNumberAllList[l]:
                         if Mark==0:
-                            f2.write('XidNumber(rmDriverVersion):' )
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write('XidNumber(rmDriverVersion):')
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
                             Mark=1
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
                         elif Mark==1:
                             f2.write(',')
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
 
-        f2.write('\n')
-        if Mark==1:
-            Mark=0
+            f2.write('\n')
+            if Mark==1:
+                Mark=0
 
+    #2nd GPU
     i=0
-    if z==1:#2nd GPU
-        for Line3 in f3:
+    XidNumberAllList=[]
+    NvidiaRMDriverAllList=[]
+    if z==1:
+        for Line1 in f1:
             i=i+1
             if i>BBXDataLoc(1):
-                if 'Xid number:' in Line3:
+                if 'Xid number' in Line1:
                     Xid=int(linecache.getline(file1, i)[-3:-1])
-                    XidLoc=i
-                    XidNumber.append(Xid)
-                    XidNumberLoc.append(XidLoc)
+                    NvidiaRMDriver=int(linecache.getline(file1,i+6 )[-7:-1])
+                    XidNumberAllList.append(Xid)
+                    NvidiaRMDriverAllList.append(NvidiaRMDriver)
 
-        XidNumberSet=set(XidNumber)
+        XidNumberSet=set(XidNumberAllList)
         XidNumberList=[k for k in XidNumberSet]#'Set' change to 'List'
+        NvidiaRMDriverSet=set(NvidiaRMDriverAllList)
+        NvidiaRMDriverList=[m for m in NvidiaRMDriverSet]
+        #print('NvidiaRMDriverList:',NvidiaRMDriverList)
         if len(XidNumberList)>0:
             for j in range(0, len(XidNumberList)):
-                for l in range(0,len(XidNumber)):
-                    if XidNumberList[j]==XidNumber[l]:
-                        NvidiaRMDriver=int(linecache.getline(file1,XidNumberLoc[l]+6 )[-7:-1])
-                        #print('NvidiaRMDriver=',NvidiaRMDriver)
+                for l in range(0,len(XidNumberAllList)):
+                    if XidNumberList[j]==XidNumberAllList[l]:
                         if Mark==0:
-                            f2.write('XidNumber(rmDriverVersion):' )
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write('XidNumber(rmDriverVersion):')
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
                             Mark=1
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
                         elif Mark==1:
                             f2.write(',')
-                            f2.write(str(XidNumberList[j]))
-                            f2.write('(%s)'%(str(NvidiaRMDriver)))
+                            f2.write(str(XidNumberAllList[l]))
+                            f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
+                                for m in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                        f2.write(',')
+                                        f2.write(str(XidNumberAllList[m]))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
+                                        break
                             break
 
-        f2.write('\n')
-        if Mark==1:
-            Mark=0
+            f2.write('\n')
+            if Mark==1:
+                Mark=0
 
     f1.close()
     f2.close()
@@ -2167,13 +2213,13 @@ if __name__=="__main__":
 
     #For the size of BBXDataBuffer.log
     if i==1:
-        for k in range (SubsLoc,FirstGPUBBXLoc + 1200):
+        for k in range (SubsLoc,FirstGPUBBXLoc + 1500):
             f2.write(str(linecache.getline(file1, k)))
     elif i==2:
-        for k in range (SubsLoc,SecondGPUBBXLoc + 1200):
+        for k in range (SubsLoc,SecondGPUBBXLoc + 1500):
             f2.write(str(linecache.getline(file1, k)))
 
-    #print(L2CacheErrorCount(1))
+    #print(XID(1))
 
 
     #One GPU
