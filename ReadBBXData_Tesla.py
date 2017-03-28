@@ -2027,7 +2027,6 @@ def XID(z):
             for Line1 in f1:
                 i=i+1
                 if BBXDataLoc(0)<i<BBXDataLoc(3):
-                    #print(Line1)
                     if 'Xid number' in Line1:
                         Xid=int(linecache.getline(file1, i)[-3:-1])
                         XidNumberAllList.append(Xid)
@@ -2192,7 +2191,6 @@ def XID(z):
                                             NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
                                             NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
                                             NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
-                                            print('NvidiaRMDriverDiffSameXIDList',NvidiaRMDriverDiffSameXIDList)
 
                                     if NvidiaRMDriverDiffSameXID!=[]:
                                         for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
