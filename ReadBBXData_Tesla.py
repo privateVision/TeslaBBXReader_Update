@@ -188,7 +188,8 @@ def BBXDataLoc(b):
 #Mods Version
 def Mods():
     for root, dirs, files in os.walk(cur_file_dir()):
-        if files[1] == 'ReadBBXData_Tesla.py' and files[0]=='BBXDataBuffer.log' :
+        if (files[1] == 'ReadBBXData_Tesla.py' and files[0]=='BBXDataBuffer.log') or (files[1] == 'ReadBBXData_Tesla.exe' and files[0]=='BBXDataBuffer.log')   :
+            # merge(join) path and file  :
             # merge(join) path and file
             file1 = os.path.join(cur_file_dir(), files[3])
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
@@ -196,7 +197,7 @@ def Mods():
             f2=open(file2,'a+')
             break
 
-        elif files[2] == 'ReadBBXData_Tesla.py' and files[0]=='BBXDataBuffer.log' :
+        elif (files[2] == 'ReadBBXData_Tesla.py' and files[0]=='BBXDataBuffer.log') or (files[2] == 'ReadBBXData_Tesla.exe' and files[0]=='BBXDataBuffer.log') :
             # merge(join) path and file
             file1 = os.path.join(cur_file_dir(), files[1])
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
@@ -2249,7 +2250,7 @@ if __name__=="__main__":
     OpenResult.close()
 
     for root, dirs, files in os.walk(cur_file_dir()):
-        if files[0] == 'ReadBBXData_Tesla.py' :
+        if files[0] == 'ReadBBXData_Tesla.py' or files[0] == 'ReadBBXData_Tesla.exe' :
             # merge(join) path and file
             file1 = os.path.join(cur_file_dir(), files[2])  # sys.argv[1] collect file
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
