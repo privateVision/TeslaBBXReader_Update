@@ -49,7 +49,7 @@ def PN():
     
     f1.close()
     f2.close()
-    return "Collect PN# successfully"            
+    return "Collect PN# successfully"
 
 # SN#
 def SN():
@@ -124,6 +124,7 @@ def ECC(a):
     
     f1.close()
     f2.close()
+    f3.close()
     return 'Collect ECC mode successfully'
 
 #InfoRom BBX Data location:
@@ -131,28 +132,50 @@ def BBXDataLoc(b):
     file1 = os.path.join(cur_file_dir(), 'BBXDataBuffer.log')
     f1=open(file1,'r',encoding='UTF-8',errors='ignore')
     f2 = open(file1, 'r', encoding='UTF-8', errors='ignore')
+    f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     i=0
     j=0
-    InfoRomBBXDataLoc=0
+    k=0
+    LocationMark=1200
+    InfoRomBBXDataLoc_1stG=0
+    InfoRomBBXDataLoc_2ndG =0
+    RunningtestLoc=0
     #1st GPU
     if b==0:
         for Line1 in f1:
             i=i+1
-            if 'InfoRom Data (GPU 0:0):'in Line1:
-                InfoRomBBXDataLoc=i
+            if 'InfoRom Data (GPU 0:0)'in Line1:
+                InfoRomBBXDataLoc_1stG=i
+                LocationMark=InfoRomBBXDataLoc_1stG
                 break
 
+        if InfoRomBBXDataLoc_1stG!=LocationMark:
+            LocationMark=0
+
     elif b==1:
-        for Line3 in f2:
+        for Line2 in f2:
             j=j+1
-            if 'InfoRom Data (GPU 1:0):' in Line3:
-                InfoRomBBXDataLoc=j
+            if 'InfoRom Data (GPU 1:0)' in Line2:
+                InfoRomBBXDataLoc_2ndG=j
                 break
+        if InfoRomBBXDataLoc_2ndG>0:
+            LocationMark =InfoRomBBXDataLoc_2ndG
+
+    #Last Location
+    elif b==3:
+        for Line3 in f3:
+            k=k+1
+            if 'Running test(s)' in Line3:
+                RunningtestLoc=k
+                break
+        if RunningtestLoc>0:
+            LocationMark=RunningtestLoc
 
     f1.close()
     f2.close()
-    return InfoRomBBXDataLoc
+    f3.close()
+    return LocationMark
 
 #Mods Version
 def Mods():
@@ -163,6 +186,7 @@ def Mods():
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
             file2 = os.path.join(cur_file_dir(), 'result.log')
             f2=open(file2,'a+')
+            break
 
         elif files[2] == 'ReadBBXData_Tesla.py' and files[0]=='BBXDataBuffer.log' :
             # merge(join) path and file
@@ -170,11 +194,14 @@ def Mods():
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
             file2 = os.path.join(cur_file_dir(), 'result.log')
             f2=open(file2,'a+')
+            break
+
         else:
             file1 = os.path.join(cur_file_dir(), files[0])
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
             file2 = os.path.join(cur_file_dir(), 'result.log')
             f2=open(file2,'a+')
+            break
 
     for Line1 in f1:
         if 'MODS           :' in Line1:
@@ -255,89 +282,70 @@ def FieldTime(j):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3=open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f4=open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f5=open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     a=0
     b=0
-    c=0
-    d=0
+
     # 1st GPU
     if j==0:
         for Line1 in f1:
             a=a+1
-            if 'First Time' in Line1:
-                FirstTimeLoc_1stG=a
-                if BBXDataLoc(0)<FirstTimeLoc_1stG<BBXDataLoc(1):
+            if BBXDataLoc(0) < a < BBXDataLoc(1):
+                if 'First Time' in Line1:
                     loc1 = Line1.index('First Time')
                     f2.write('First Time BBX updated:')
-                    f2.write(Line1[(loc1 + 36):(loc1 + 56)])
+                    f2.write(Line1[(loc1 + 36):-4])
                     f2.write('\n')
-                    break
+                    #break
 
-        for Line2 in f3:
-            d=d+1
-            if 'Last Time' in Line2:
-                LastTimeLoc_1stG=d
-                if BBXDataLoc(0) < FirstTimeLoc_1stG < BBXDataLoc(1):
-                    loc2 = Line2.index('Last Time')
+                elif 'Last Time' in Line1:
+                    loc2 = Line1.index('Last Time')
                     f2.write('Last Time BBX updated:')
-                    f2.write(Line2[(loc2 + 36):(loc2 + 56)])
+                    f2.write(Line1[(loc2 + 36):-4])
                     f2.write('\n')
                     break
 
     # 2nd GPU
     if j==1:
-        for Line3 in f4:
+        for Line3 in f3:
             b=b+1
-            if 'First Time' in Line3:
-                FirstTimeLoc_2ndG=b
-                if FirstTimeLoc_2ndG>BBXDataLoc(1):
+            if b> BBXDataLoc(1):
+                if 'First Time' in Line3:
                     loc3 = Line3.index('First Time')
                     f2.write('First Time BBX updated:')
-                    f2.write(Line3[(loc3 + 36):(loc3 + 56)])
+                    #f2.write(Line3[(loc3 + 36):(loc3 + 56)])
+                    f2.write(Line3[(loc3 + 36):-4])
                     f2.write('\n')
-                    break
+                    #break
 
-        for Line4 in f5:
-            c=c+1
-            if 'Last Time BBX was updated' in Line4:
-                LastTimeLoc_2ndG=c
-                if LastTimeLoc_2ndG>BBXDataLoc(1):
-                    loc4 = Line4.index('Last Time')
+                elif 'Last Time BBX was updated' in Line3:
+                    loc4 = Line3.index('Last Time')
                     f2.write('Last Time BBX updated:')
-                    f2.write(Line4[(loc4 + 36):(loc4 + 56)])
+                    f2.write(Line3[(loc4 + 36):-4])
                     f2.write('\n')
                     break
     #One GPU
     if j==3:
         for Line1 in f1:
             a=a+1
-            if 'First Time' in Line1:
-                FirstTimeLoc_1stG=a
-                if BBXDataLoc(0)<FirstTimeLoc_1stG<BBXDataLoc(0)+1000:
+            if BBXDataLoc(0) < a< BBXDataLoc(3):
+                if 'First Time' in Line1:
                     loc1 = Line1.index('First Time')
                     f2.write('First Time BBX updated:')
-                    f2.write(Line1[(loc1 + 36):(loc1 + 56)])
+                    f2.write(Line1[(loc1 + 36):-4])
                     f2.write('\n')
-                    break
+                    #break
 
-        for Line2 in f3:
-            d=d+1
-            if 'Last Time' in Line2:
-                LastTimeLoc_1stG=d
-                if BBXDataLoc(0) < FirstTimeLoc_1stG < BBXDataLoc(0) + 1000:
-                    loc2 = Line2.index('Last Time')
+                elif 'Last Time' in Line1:
+                    loc2 = Line1.index('Last Time')
                     f2.write('Last Time BBX updated:')
-                    f2.write(Line2[(loc2 + 36):(loc2 + 56)])
+                    f2.write(Line1[(loc2 + 36):-4])
                     f2.write('\n')
                     break
 
     f1.close()
     f2.close()
     f3.close()
-    f4.close()
-    f5.close()
 
     return 'Field Time Show'
 
@@ -482,7 +490,7 @@ def CalculateFieldTime(m):
         delta2=date4-date3 #field time delta
         if date3==date4 :
             pass
-        elif FirstTimeLoc_2ndG>BBXDataLoc(1):
+        elif BBXDataLoc(1)<FirstTimeLoc_2ndG<BBXDataLoc(3):
             now_date = datetime.datetime.now() # the Days' number of February
             now_year = now_date.year
             num_feb = calendar.monthrange(now_year, 2)[1]
@@ -573,7 +581,7 @@ def CalculateFieldTime(m):
         delta1=date2-date1 #field time delta
         if date1==date2 :
             pass
-        elif BBXDataLoc(0)<FirstTimeLoc_1stG<BBXDataLoc(0)+1000:
+        elif BBXDataLoc(0)<FirstTimeLoc_1stG<BBXDataLoc(3):
             now_date = datetime.datetime.now() # the Days' number of February
             now_year = now_date.year
             num_feb = calendar.monthrange(now_year, 2)[1]
@@ -658,17 +666,14 @@ def Power(n):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f4 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f5 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     l=0
     m=0
-
     #1st GPU Power
     if n==0:
         for Line1 in f1:
             l = l + 1
-            if BBXDataLoc(0) < l < BBXDataLoc(0)+500:
+            if BBXDataLoc(0) < l < BBXDataLoc(1):
                 if 'Maximum power drawn per day' in Line1:
                     PowerArray=[]
                     PowerNum=int(linecache.getline(file1, l)[-9:-7])
@@ -681,13 +686,9 @@ def Power(n):
                         f2.write('MaxPwr%ddays:' % PowerNum)
                         f2.write(PowerMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        l = 0
-        for Line2 in f3:
-            l = l + 1
-            if BBXDataLoc(0) < l < BBXDataLoc(0)+500:
-                if 'Maximum power drawn per month' in Line2:
+                elif 'Maximum power drawn per month' in Line1:
                     PowerArray = []
                     PowerNum = int(linecache.getline(file1, l)[-11:-9])
                     for k in range(0, PowerNum):
@@ -703,9 +704,9 @@ def Power(n):
 
     #2nd GPU Power
     if n==1:
-        for Line3 in f4:
+        for Line3 in f3:
             m = m + 1
-            if BBXDataLoc(1)<m < BBXDataLoc(1)+500 :
+            if BBXDataLoc(1)<m < BBXDataLoc(3) :
                 if 'Maximum power drawn per day' in Line3:
                     PowerArray=[]
                     PowerNum=int(linecache.getline(file1, m)[-9:-7])
@@ -718,13 +719,9 @@ def Power(n):
                         f2.write('MaxPwr%ddays:' % PowerNum)
                         f2.write(PowerMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        m=0
-        for Line4 in f5:
-            m=m+1
-            if BBXDataLoc(1)<m < BBXDataLoc(1)+500 :
-                if 'Maximum power drawn per month' in Line4:
+                elif 'Maximum power drawn per month' in Line3:
                     PowerArray = []
                     PowerNum = int(linecache.getline(file1, m)[-11:-9])
                     for k in range(0, PowerNum):
@@ -742,7 +739,7 @@ def Power(n):
     if n==3:
         for Line1 in f1:
             l = l + 1
-            if BBXDataLoc(0) < l < BBXDataLoc(0) + 600:
+            if BBXDataLoc(0) < l < BBXDataLoc(3):
                 if 'Maximum power drawn per day' in Line1:
                     PowerArray=[]
                     PowerNum=int(linecache.getline(file1, l)[-9:-7])
@@ -755,12 +752,9 @@ def Power(n):
                         f2.write('MaxPwr%ddays:' % PowerNum)
                         f2.write(PowerMax)
                         f2.write('\n')
-                        break
-        l = 0
-        for Line2 in f3:
-            l = l + 1
-            if BBXDataLoc(0) < l < BBXDataLoc(0) + 600:
-                if 'Maximum power drawn per month' in Line2:
+                        #break
+
+                elif 'Maximum power drawn per month' in Line1:
                     PowerArray = []
                     PowerNum = int(linecache.getline(file1, l)[-11:-9])
                     for k in range(0, PowerNum):
@@ -777,8 +771,6 @@ def Power(n):
     f1.close()
     f2.close()
     f3.close()
-    f4.close()
-    f5.close()
 
     return 'Max Power Show'
 
@@ -789,8 +781,6 @@ def DayTemp(p):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f4 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f5 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     i=0 #'i' and 'j' is the line number
     j=0
@@ -798,7 +788,7 @@ def DayTemp(p):
     if p==0:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(1)-150:
+            if BBXDataLoc(0) < i < BBXDataLoc(1):
                 if 'Maximum GPU temp per day' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-9:-7])
@@ -811,13 +801,9 @@ def DayTemp(p):
                         f2.write('MaxTemp%ddays:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        i=0
-        for Line2 in f3:
-            i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(1)-150:
-                if 'Minimum GPU temp per day' in Line2:
+                elif 'Minimum GPU temp per day' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-9:-7])
                     for k in range(0,TempNum):
@@ -833,9 +819,9 @@ def DayTemp(p):
 
     #2nd GPU Power
     elif p==1:
-        for Line2 in f4:
+        for Line2 in f3:
             j=j+1
-            if BBXDataLoc(1)<j < BBXDataLoc(1)+800:
+            if BBXDataLoc(1)<j < BBXDataLoc(3):
                 if 'Maximum GPU temp per day' in Line2:
                     TempArray = []
                     TempNum = int(linecache.getline(file1,j)[-9:-7])
@@ -848,12 +834,9 @@ def DayTemp(p):
                         f2.write('MaxTemp%ddays:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
-        j=0
-        for Line2 in f5:
-            j=j+1
-            if BBXDataLoc(1) < j < BBXDataLoc(1) + 800:
-                if 'Minimum GPU temp per day' in Line2:
+                        #break
+
+                elif 'Minimum GPU temp per day' in Line2:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, j)[-9:-7])
                     for k in range(0,TempNum):
@@ -871,7 +854,7 @@ def DayTemp(p):
     if p==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+800:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'Maximum GPU temp per day' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-9:-7])
@@ -884,13 +867,9 @@ def DayTemp(p):
                         f2.write('MaxTemp%ddays:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        i=0
-        for Line2 in f3:
-            i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+800:
-                if 'Minimum GPU temp per day' in Line2:
+                elif 'Minimum GPU temp per day' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-9:-7])
                     for k in range(0,TempNum):
@@ -908,9 +887,6 @@ def DayTemp(p):
     f1.close()
     f2.close()
     f3.close()
-    f4.close()
-    f5.close()
-
     return 'GPU Day Temp Show'
 
 #GPU Month Temp
@@ -920,8 +896,6 @@ def MonTemp(q):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f4 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f5 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     i=0 #'i' and 'j' is the line number
     j=0
@@ -929,7 +903,7 @@ def MonTemp(q):
     if q==0:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(1)-150:
+            if BBXDataLoc(0) < i < BBXDataLoc(1):
                 if 'Maximum GPU temp per month' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-11:-9])
@@ -942,13 +916,9 @@ def MonTemp(q):
                         f2.write('MaxTemp%dmonths:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        i=0
-        for Line2 in f3:
-            i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(1)-150:
-                if 'Minimum GPU temp per month' in Line2:
+                elif 'Minimum GPU temp per month' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-11:-9])
                     for k in range(0,TempNum):
@@ -964,9 +934,9 @@ def MonTemp(q):
 
     #2nd GPU Power
     elif q==1:
-        for Line2 in f4:
+        for Line2 in f3:
             j=j+1
-            if BBXDataLoc(1) < j < BBXDataLoc(1) + 800:
+            if BBXDataLoc(1) < j < BBXDataLoc(3):
                 if 'Maximum GPU temp per month' in Line2:
                     TempArray = []
                     TempNum = int(linecache.getline(file1,j)[-11:-9])
@@ -979,12 +949,9 @@ def MonTemp(q):
                         f2.write('MaxTemp%dmonths:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
-        j=0
-        for Line2 in f5:
-            j=j+1
-            if BBXDataLoc(1) < j < BBXDataLoc(1) + 800:
-                if 'Minimum GPU temp per month' in Line2:
+                        #break
+
+                elif 'Minimum GPU temp per month' in Line2:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, j)[-11:-9])
                     for k in range(0,TempNum):
@@ -1002,7 +969,7 @@ def MonTemp(q):
     if q==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+800:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'Maximum GPU temp per month' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-11:-9])
@@ -1015,13 +982,9 @@ def MonTemp(q):
                         f2.write('MaxTemp%dmonths:' % TempNum)
                         f2.write(TempMax)
                         f2.write('\n')
-                        break
+                        #break
 
-        i=0
-        for Line2 in f3:
-            i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+800:
-                if 'Minimum GPU temp per month' in Line2:
+                elif 'Minimum GPU temp per month' in Line1:
                     TempArray = []
                     TempNum = int(linecache.getline(file1, i)[-11:-9])
                     for k in range(0,TempNum):
@@ -1038,8 +1001,6 @@ def MonTemp(q):
     f1.close()
     f2.close()
     f3.close()
-    f4.close()
-    f5.close()
 
     return 'GPU Month Temp Show'
 
@@ -1090,7 +1051,7 @@ def BlacklistedPages(r):
     if r==1:
         for Line2 in f3:
             j=j+1
-            if j > BBXDataLoc(1):
+            if BBXDataLoc(1)<j < BBXDataLoc(3):
                 if 'Blacklisted Pages:' in Line2:
                     BlackPagesAllNumber=int(Line2[21:-1])
 
@@ -1113,7 +1074,7 @@ def BlacklistedPages(r):
     if r==3:
         for Line3 in f4:
             k=k+1
-            if BBXDataLoc(0) < k < BBXDataLoc(0) + 1000:
+            if BBXDataLoc(0) < k < BBXDataLoc(3):
                 if 'Blacklisted Pages:' in Line3:
                     BlackPagesAllNumber=int(Line3[21:-1])
 
@@ -1191,7 +1152,7 @@ def FBErrorCount(s):
     elif s==1:
         for Line2 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l < BBXDataLoc(3):
                 if 'FB Error Counts' in Line2:
                     FBErrorLoc=l
                 elif 'L2 Cache Error Counts' in Line2:
@@ -1227,7 +1188,7 @@ def FBErrorCount(s):
     if s==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+1000:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'FB Error Counts' in Line1:
                     FBErrorLoc=i
                 elif 'L2 Cache Error Counts' in Line1:
@@ -1324,7 +1285,7 @@ def TextureCacheErrors(t):
     if t==1:
         for Line1 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l < BBXDataLoc(3):
                 if 'Texture Cache Retry Counts' in Line1:
                     TextureLoc=l
                 elif 'FB Error Counts' in Line1:
@@ -1366,7 +1327,7 @@ def TextureCacheErrors(t):
     if t==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+900:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'Texture Cache Retry Counts' in Line1:
                     TextureLoc=i
                 elif 'FB Error Counts' in Line1:
@@ -1469,7 +1430,7 @@ def RegisterErrorCounts(u):
     if u==1:
         for Line1 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l < BBXDataLoc(3):
                 if 'Register File Error Counts' in Line1:
                     RegisterLoc=l
                 elif 'Texture Cache Retry Counts' in Line1:
@@ -1511,7 +1472,7 @@ def RegisterErrorCounts(u):
     if u==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+900:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'Register File Error Counts' in Line1:
                     RegisterLoc=i
                 elif 'Texture Cache Retry Counts' in Line1:
@@ -1612,7 +1573,7 @@ def L1CacheErrorCount(v):
     if v==1:
         for Line1 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l < BBXDataLoc(3):
                 if 'L1 Cache Error Counts' in Line1:
                     L1CacheLoc=l
                 elif 'Register File Error Counts' in Line1:
@@ -1654,7 +1615,7 @@ def L1CacheErrorCount(v):
     if v==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+900:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'L1 Cache Error Counts' in Line1:
                     L1CacheLoc=i
                 elif 'Register File Error Counts' in Line1:
@@ -1759,7 +1720,7 @@ def L2CacheErrorCount(x):
     if x==1:
         for Line2 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l < BBXDataLoc(3):
                 if 'L2 Cache Error Counts' in Line2:
                     L2CacheLoc = l
                     break
@@ -1801,7 +1762,7 @@ def L2CacheErrorCount(x):
     if x==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+900:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'L2 Cache Error Counts' in Line1:
                     L2CacheLoc = i
                     break
@@ -1904,7 +1865,7 @@ def SHMCacheErrorCount(y):
     if y==1:
         for Line1 in f3:
             l=l+1
-            if l > BBXDataLoc(1):
+            if BBXDataLoc(1)<l <BBXDataLoc(3):
                 if 'Texture Cache Retry Counts' in Line1:
                     TextureLoc=l
                 elif 'Register File Error Counts' in Line1:
@@ -1948,7 +1909,7 @@ def SHMCacheErrorCount(y):
     if y==3:
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0) < i < BBXDataLoc(0)+900:
+            if BBXDataLoc(0) < i < BBXDataLoc(3):
                 if 'Texture Cache Retry Counts' in Line1:
                     TextureLoc=i
                 elif 'Register File Error Counts' in Line1:
@@ -2000,22 +1961,28 @@ def XID(z):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
+    f4 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     i=0
     Mark=0
     XidNumberAllList = []
     NvidiaRMDriverAllList=[]
+    NvidiaRMDriverDiffSameXID=[]
 
     #One GPU
-    if z==3:
+    if z==3: #1st GPU
         for Line1 in f1:
             i=i+1
-            if BBXDataLoc(0)<i<BBXDataLoc(0)+1500:
+            #print(Line1)
+            #print('BBXDataLoc',BBXDataLoc(3))
+            if BBXDataLoc(0)<i<BBXDataLoc(3):
+                #print(Line1)
                 if 'Xid number' in Line1:
                     Xid=int(linecache.getline(file1, i)[-3:-1])
                     NvidiaRMDriver=int(linecache.getline(file1,i+6 )[-7:-1])
                     XidNumberAllList.append(Xid)
                     NvidiaRMDriverAllList.append(NvidiaRMDriver)
+                    #print('NvidiaRMDriverAllList',NvidiaRMDriverAllList)
 
         XidNumberSet=set(XidNumberAllList)
         XidNumberList=[k for k in XidNumberSet]#'Set' change to 'List'
@@ -2029,32 +1996,45 @@ def XID(z):
                             f2.write('XidNumber(rmDriverVersion):')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark1=XidNumberAllList[l]
                             Mark=1
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+
+                                if NvidiaRMDriverDiffSameXID != []:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark1))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
                         elif Mark==1:
                             f2.write(',')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark2=XidNumberAllList[l]
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+
+                                if NvidiaRMDriverDiffSameXID != []:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark2))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
 
             f2.write('\n')
             if Mark==1:
                 Mark=0
-
 
     #Two GPU
     if z==0: #1st GPU
@@ -2079,26 +2059,40 @@ def XID(z):
                             f2.write('XidNumber(rmDriverVersion):')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark1=XidNumberAllList[l]
                             Mark=1
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+
+                                if NvidiaRMDriverDiffSameXID != []:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark1))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
                         elif Mark==1:
                             f2.write(',')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark2=XidNumberAllList[l]
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+
+                                if NvidiaRMDriverDiffSameXID != []:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark2))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
 
             f2.write('\n')
@@ -2107,15 +2101,19 @@ def XID(z):
 
     #2nd GPU
     i=0
-    XidNumberAllList=[]
+    XidNumberAllList = []
     NvidiaRMDriverAllList=[]
-    if z==1:
-        for Line1 in f1:
+    NvidiaRMDriverDiffSameXID=[]
+    Xid=0
+    NvidiaRMDriver=0
+    NvidiaRMDriverDiffSameXIDList=0
+    if z==1:#2nd GPU
+        for Line2 in f3.readlines():
             i=i+1
             if i>BBXDataLoc(1):
-                if 'Xid number' in Line1:
+                if 'Xid number' in Line2:
                     Xid=int(linecache.getline(file1, i)[-3:-1])
-                    NvidiaRMDriver=int(linecache.getline(file1,i+6 )[-7:-1])
+                    NvidiaRMDriver = int(linecache.getline(file1, i + 6)[-6:-1])
                     XidNumberAllList.append(Xid)
                     NvidiaRMDriverAllList.append(NvidiaRMDriver)
 
@@ -2123,35 +2121,49 @@ def XID(z):
         XidNumberList=[k for k in XidNumberSet]#'Set' change to 'List'
         NvidiaRMDriverSet=set(NvidiaRMDriverAllList)
         NvidiaRMDriverList=[m for m in NvidiaRMDriverSet]
-        #print('NvidiaRMDriverList:',NvidiaRMDriverList)
         if len(XidNumberList)>0:
             for j in range(0, len(XidNumberList)):
-                for l in range(0,len(XidNumberAllList)):
+                for l in range(0,len(NvidiaRMDriverAllList)):
                     if XidNumberList[j]==XidNumberAllList[l]:
                         if Mark==0:
                             f2.write('XidNumber(rmDriverVersion):')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark1=XidNumberAllList[l]
                             Mark=1
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+                                        print('NvidiaRMDriverDiffSameXIDList',NvidiaRMDriverDiffSameXIDList)
+
+                                if NvidiaRMDriverDiffSameXID!=[]:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark1))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
                         elif Mark==1:
                             f2.write(',')
                             f2.write(str(XidNumberAllList[l]))
                             f2.write('(%s)'%(str(NvidiaRMDriverAllList[l])))
+                            XidNumberMark2=XidNumberAllList[l]
                             if len(NvidiaRMDriverList)>1:#For NvidiaRMDriver difference
-                                for m in range(0,len(NvidiaRMDriverAllList)):
-                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[m] and XidNumberAllList[l]==XidNumberAllList[m]:
+                                for n in range(0,len(NvidiaRMDriverAllList)):
+                                    if NvidiaRMDriverAllList[l]!=NvidiaRMDriverAllList[n] and XidNumberList[j]==XidNumberAllList[n]:
+                                        NvidiaRMDriverDiffSameXID.append(NvidiaRMDriverAllList[n])
+                                        NvidiaRMDriverDiffSameXIDSet=set(NvidiaRMDriverDiffSameXID)
+                                        NvidiaRMDriverDiffSameXIDList=[q for q in NvidiaRMDriverDiffSameXIDSet]
+
+                                if NvidiaRMDriverDiffSameXID != []:
+                                    for s in range(0,len(NvidiaRMDriverDiffSameXIDList)):
                                         f2.write(',')
-                                        f2.write(str(XidNumberAllList[m]))
-                                        f2.write('(%s)' % (str(NvidiaRMDriverAllList[m])))
-                                        break
+                                        f2.write(str(XidNumberMark2))
+                                        f2.write('(%s)' % (str(NvidiaRMDriverDiffSameXIDList[s])))
+                                    NvidiaRMDriverDiffSameXID=[]
                             break
 
             f2.write('\n')
@@ -2161,6 +2173,7 @@ def XID(z):
     f1.close()
     f2.close()
     f3.close()
+    f4.close()
     return 'Xid Number Collect'
 
 if __name__=="__main__":
@@ -2186,20 +2199,19 @@ if __name__=="__main__":
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
             file2 = os.path.join(cur_file_dir(), 'BBXDataBuffer.log')
             f2=open(file2,'a+')
-            f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
         else:
             file1 = os.path.join(cur_file_dir(), files[0])  # sys.argv[1] collect file
             f1 = open(file1, 'r', encoding='UTF-8', errors='ignore')
             file2 = os.path.join(cur_file_dir(), 'BBXDataBuffer.log')
             f2=open(file2,'a+')
-            f3 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     i=0
     j=0
     k=0
     FirstGPUBBXLoc=0
     SecondGPUBBXLoc=0
+    BBXLastLineLoc=0
     for Line1 in f1:
         j=j+1
         if 'InfoRom Data' in Line1:
@@ -2210,17 +2222,27 @@ if __name__=="__main__":
             FirstGPUBBXLoc=j
         if 'InfoRom Data (GPU 1:0):' in Line1:
             SecondGPUBBXLoc=j
+        if 'Running test(s)' in Line1:
+            BBXLastLineLoc=j
 
     #For the size of BBXDataBuffer.log
     if i==1:
-        for k in range (SubsLoc,FirstGPUBBXLoc + 1500):
-            f2.write(str(linecache.getline(file1, k)))
+        if BBXLastLineLoc>0:
+            for k in range (SubsLoc,BBXLastLineLoc+1):
+                f2.write(str(linecache.getline(file1, k)))
+        else:
+            for k in range (SubsLoc,FirstGPUBBXLoc+1500):
+                f2.write(str(linecache.getline(file1, k)))
     elif i==2:
-        for k in range (SubsLoc,SecondGPUBBXLoc + 1500):
-            f2.write(str(linecache.getline(file1, k)))
+        if BBXLastLineLoc>0:
+            for k in range(SubsLoc, BBXLastLineLoc+1):
+                f2.write(str(linecache.getline(file1, k)))
+        else:
+            for k in range (SubsLoc,SecondGPUBBXLoc + 1500):
+                f2.write(str(linecache.getline(file1, k)))
 
-    #print(XID(1))
-
+    f1.close()
+    f2.close()
 
     #One GPU
     if i==1:
@@ -2304,8 +2326,5 @@ if __name__=="__main__":
         else:
             pass
 
-
-    f1.close()
-    f2.close()
     os.remove(file2)
 
