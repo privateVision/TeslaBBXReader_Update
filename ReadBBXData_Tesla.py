@@ -83,7 +83,7 @@ def SKU():
         for Line1 in f1:
             if 'Project        :' in Line1:
                 f2.write('SKU:')
-                f2.write(Line1[16:27])
+                f2.write(str(Line1[17:27]))
                 f2.write('\n')
                 break
     except:
@@ -239,15 +239,15 @@ def MemVendor(c):
         i=0
         for Line1 in f1:
             if 'Memory Man.' in Line1:
-                f2.write('Memory Man. :')
-                f2.write(Line1[20:-1])
+                f2.write('Memory Man.:')
+                f2.write(Line1[21:-1])
                 f2.write('\n')
                 break
         #One GPU
         if c==3:
             for Line2 in f3:
                 if 'HBM Info' in Line2:
-                    f2.write('HBM Info :')
+                    f2.write('HBM Info:')
                     f2.write(Line2[17:-1])
                     f2.write('\n')
                     break
@@ -258,7 +258,7 @@ def MemVendor(c):
                 if 'HBM Info' in Line3:
                     HBMInfoLen=int(len(Line3)-(len(Line3)-16)/2)
                     HBMInfo=linecache.getline(file1, i)[17:HBMInfoLen]
-                    f2.write('HBM Info :')
+                    f2.write('HBM Info:')
                     f2.write(HBMInfo)
                     f2.write('\n')
                     break
@@ -278,12 +278,18 @@ def MemPN():
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
 
+    mark=0
     try:
         for Line1 in f1:
             if 'Memory Part ID' in Line1:
-                f2.write('Memory Part ID:')
-                f2.write(Line1[21:-1])
-                f2.write('\n')
+                mark = Line1[21:-1]
+                if mark=='':
+                    pass
+                else:
+                    f2.write('MemoryPartID:')
+                    f2.write(Line1[21:-1])
+                    f2.write('\n')
+
                 break
     except:
         pass
@@ -310,14 +316,14 @@ def FieldTime(j):
                 if BBXDataLoc(0) < a < BBXDataLoc(1):
                     if 'First Time' in Line1:
                         loc1 = Line1.index('First Time')
-                        f2.write('First Time BBX updated:')
+                        f2.write('FirstTimeBBXupdated:')
                         f2.write(Line1[(loc1 + 36):-4])
                         f2.write('\n')
                         #break
 
                     elif 'Last Time' in Line1:
                         loc2 = Line1.index('Last Time')
-                        f2.write('Last Time BBX updated:')
+                        f2.write('LastTimeBBXupdated:')
                         f2.write(Line1[(loc2 + 36):-4])
                         f2.write('\n')
                         break
@@ -329,7 +335,7 @@ def FieldTime(j):
                 if b> BBXDataLoc(1):
                     if 'First Time' in Line3:
                         loc3 = Line3.index('First Time')
-                        f2.write('First Time BBX updated:')
+                        f2.write('FirstTimeBBXupdated:')
                         #f2.write(Line3[(loc3 + 36):(loc3 + 56)])
                         f2.write(Line3[(loc3 + 36):-4])
                         f2.write('\n')
@@ -337,7 +343,7 @@ def FieldTime(j):
 
                     elif 'Last Time BBX was updated' in Line3:
                         loc4 = Line3.index('Last Time')
-                        f2.write('Last Time BBX updated:')
+                        f2.write('LastTimeBBXupdated:')
                         f2.write(Line3[(loc4 + 36):-4])
                         f2.write('\n')
                         break
@@ -348,14 +354,14 @@ def FieldTime(j):
                 if BBXDataLoc(0) < a< BBXDataLoc(3):
                     if 'First Time' in Line1:
                         loc1 = Line1.index('First Time')
-                        f2.write('First Time BBX updated:')
+                        f2.write('FirstTimeBBXupdated:')
                         f2.write(Line1[(loc1 + 36):-4])
                         f2.write('\n')
                         #break
 
                     elif 'Last Time' in Line1:
                         loc2 = Line1.index('Last Time')
-                        f2.write('Last Time BBX updated:')
+                        f2.write('LastTimeBBXupdated:')
                         f2.write(Line1[(loc2 + 36):-4])
                         f2.write('\n')
                         break
@@ -375,10 +381,6 @@ def CalculateFieldTime(m):
     file2=os.path.join(cur_file_dir(),'result.log')
     f2=open(file2,'a+')
     f3=open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f4=open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f5=open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f6 = open(file1, 'r', encoding='UTF-8', errors='ignore')
-    f7 = open(file1, 'r', encoding='UTF-8', errors='ignore')
 
     a=0#1st GPU First time Location
     b=0#2nd GPU First time location
@@ -394,16 +396,12 @@ def CalculateFieldTime(m):
                     FirstTimeLoc_1stG=a
                     loc1=Line1.index('First Time')
                     date1=datetime.datetime.strptime(Line1[(loc1 + 36):(loc1 + 56)], '%Y-%m-%d, %H:%M:%S')
-                    break
-            for Line2 in f3:
-                if 'Last Time' in Line2:
-                    loc2 = Line2.index('Last Time')
-                    date2 = datetime.datetime.strptime(Line2[(loc2 + 36):(loc2 + 56)], '%Y-%m-%d, %H:%M:%S')
-                    break
-            for Line3 in f4:
-                if 'Total time GPU was running' in Line3:
-                    loc3 = Line3.index('Total time GPU was running')
-                    date3 = Line3[(loc3 + 36):-1]  # 1st GPU Total time
+                if 'Last Time' in Line1:
+                    loc2 = Line1.index('Last Time')
+                    date2 = datetime.datetime.strptime(Line1[(loc2 + 36):(loc2 + 56)], '%Y-%m-%d, %H:%M:%S')
+                if 'Total time GPU was running' in Line1:
+                    loc3 = Line1.index('Total time GPU was running')
+                    date3 = Line1[(loc3 + 36):-1]  # 1st GPU Total time
                     break
 
             delta1=date2-date1 #field time delta
@@ -469,16 +467,16 @@ def CalculateFieldTime(m):
                 dutyCycle1 = (ART1 / time1stG_4) * 100
 
                 # write field time
-                f2.write('Field Time: %.3f days' % time1stG_5)
-                f2.write('(%dyear, %ddays %s)\n' % (year1stG, days1stG, HMS1stG))
-                f2.write('Total Time: %d seconds' % (ART1))
-                f2.write('(%dyear, %ddays %s)\n' % (ARY1, ARD1, ARHMS11))
-                f2.write('Operation Day=%.3f Days\n' % ODays1)
+                f2.write('FieldTime:%.3f days' % time1stG_5)
+                f2.write('(%dyear,%ddays %s)\n' % (year1stG, days1stG, HMS1stG))
+                f2.write('TotalTime:%d seconds' % (ART1))
+                f2.write('(%dyear,%ddays %s)\n' % (ARY1, ARD1, ARHMS11))
+                f2.write('OperationDay=%.3f Days\n' % ODays1)
                 f2.write('DutyCycle=%.3f%%\n' % dutyCycle1)
 
         #2nd GPU Field Time calculate
         elif m==1:
-            for Line4 in f5:
+            for Line4 in f3:
                 b=b+1
                 if 'First Time' in Line4:
                     FirstTimeLoc_2ndG=b
@@ -487,24 +485,18 @@ def CalculateFieldTime(m):
                     else:
                         loc4 = Line4.index('First Time')
                         date3 = datetime.datetime.strptime(Line4[(loc4 + 36):(loc4 + 56)], '%Y-%m-%d, %H:%M:%S')
-                        break
-
-            for Line5 in f6:
-                if 'Last Time' in Line5:
+                if 'Last Time' in Line4:
                     if k==1:
                         k=2
                     else:
-                        loc5 = Line5.index('Last Time')
-                        date4 = datetime.datetime.strptime(Line5[(loc5 + 36):(loc5 + 56)], '%Y-%m-%d, %H:%M:%S')
-                        break
-
-            for Line6 in f7:
-                if 'Total time GPU was running' in Line6:
+                        loc5 = Line4.index('Last Time')
+                        date4 = datetime.datetime.strptime(Line4[(loc5 + 36):(loc5 + 56)], '%Y-%m-%d, %H:%M:%S')
+                if 'Total time GPU was running' in Line4:
                     if k==2:
                         k=3
                     else:
-                        loc6 = Line6.index('Total time GPU was running')
-                        date5 = Line6[(loc6 + 36):-1]  # 2nd GPU Total time
+                        loc6 = Line4.index('Total time GPU was running')
+                        date5 = Line4[(loc6 + 36):-1]  # 2nd GPU Total time
                         break
 
             delta2=date4-date3 #field time delta
@@ -570,11 +562,11 @@ def CalculateFieldTime(m):
                 dutyCycle2 = (ART2 / time2ndG_4) * 100
 
                 # write field time
-                f2.write('Field Time: %.3f days' % time2ndG_5)
-                f2.write('(%dyear, %ddays %s)\n' % (year2ndG, days2ndG, HMS2ndG))
-                f2.write('Total Time: %d seconds' % (ART2))
-                f2.write('(%dyear, %ddays %s)\n' % (ARY2, ARD2, ARHMS22))
-                f2.write('Operation Day=%.3f Days\n' % ODays2)
+                f2.write('FieldTime:%.3f days' % time2ndG_5)
+                f2.write('(%dyear,%ddays %s)\n' % (year2ndG, days2ndG, HMS2ndG))
+                f2.write('TotalTime:%d seconds' % (ART2))
+                f2.write('(%dyear,%ddays %s)\n' % (ARY2, ARD2, ARHMS22))
+                f2.write('OperationDay=%.3f Days\n' % ODays2)
                 f2.write('DutyCycle=%.3f%%\n' % dutyCycle2)
 
         #One GPU Field Time calculate
@@ -586,16 +578,12 @@ def CalculateFieldTime(m):
                     FirstTimeLoc_1stG=a
                     loc1=Line1.index('First Time')
                     date1=datetime.datetime.strptime(Line1[(loc1 + 36):(loc1 + 56)], '%Y-%m-%d, %H:%M:%S')
-                    break
-            for Line2 in f3:
-                if 'Last Time' in Line2:
-                    loc2 = Line2.index('Last Time')
-                    date2 = datetime.datetime.strptime(Line2[(loc2 + 36):(loc2 + 56)], '%Y-%m-%d, %H:%M:%S')
-                    break
-            for Line3 in f4:
-                if 'Total time GPU was running' in Line3:
-                    loc3 = Line3.index('Total time GPU was running')
-                    date3 = Line3[(loc3 + 36):-1]  # 1st GPU Total time
+                if 'Last Time' in Line1:
+                    loc2 = Line1.index('Last Time')
+                    date2 = datetime.datetime.strptime(Line1[(loc2 + 36):(loc2 + 56)], '%Y-%m-%d, %H:%M:%S')
+                if 'Total time GPU was running' in Line1:
+                    loc3 = Line1.index('Total time GPU was running')
+                    date3 = Line1[(loc3 + 36):-1]  # 1st GPU Total time
                     break
 
             delta1=date2-date1 #field time delta
@@ -661,11 +649,11 @@ def CalculateFieldTime(m):
                 dutyCycle1 = (ART1 / time1stG_4) * 100
 
                 # write field time
-                f2.write('Field Time: %.3f days' % time1stG_5)
-                f2.write('(%dyear, %ddays %s)\n' % (year1stG, days1stG, HMS1stG))
-                f2.write('Total Time: %d seconds' % (ART1))
-                f2.write('(%dyear, %ddays %s)\n' % (ARY1, ARD1, ARHMS11))
-                f2.write('Operation Day=%.3f Days\n' % ODays1)
+                f2.write('FieldTime:%.3f days' % time1stG_5)
+                f2.write('(%dyear,%ddays %s)\n' % (year1stG, days1stG, HMS1stG))
+                f2.write('TotalTime:%d seconds' % (ART1))
+                f2.write('(%dyear,%ddays %s)\n' % (ARY1, ARD1, ARHMS11))
+                f2.write('OperationDay=%.3f Days\n' % ODays1)
                 f2.write('DutyCycle=%.3f%%\n' % dutyCycle1)
     except:
         pass
@@ -673,10 +661,6 @@ def CalculateFieldTime(m):
     f1.close()
     f2.close()
     f3.close()
-    f4.close()
-    f5.close()
-    f6.close()
-    f7.close()
 
     return 'Calculate Time'
 
@@ -2266,36 +2250,60 @@ if __name__=="__main__":
     i=0
     j=0
     k=0
+    mark1=0
+    mark2=0
+    mark3=0
+    mark4=0
+    mark5=0
     FirstGPUBBXLoc=0
     SecondGPUBBXLoc=0
     BBXLastLineLoc=0
+
     for Line1 in f1:
         j=j+1
-        if 'InfoRom Data' in Line1:
-            i=i+1
-        if 'Subsystem VID  :' in Line1:
-            SubsLoc=j
-        if 'InfoRom Data (GPU 0:0)' in Line1:
-            FirstGPUBBXLoc=j
-        if 'InfoRom Data (GPU 1:0):' in Line1:
-            SecondGPUBBXLoc=j
-        if 'Running test(s)' in Line1:
-            BBXLastLineLoc=j
-
+        if mark1==0:
+            if 'Subsystem VID' in Line1:
+                SubsLoc=j
+                mark1=1
+        if mark2==0:
+            if 'InfoRom Data (GPU 0:0)' in Line1:
+                FirstGPUBBXLoc=j
+                i=i+1
+                mark2 = 1
+        if mark3==0:
+            if 'InfoRom Data (GPU 1:0):' in Line1:
+                SecondGPUBBXLoc=j
+                i=i+1
+                mark3=1
+        if mark4==0:
+            if 'Running test(s)' in Line1:
+                BBXLastLineLoc=j
+                mark4=1
+                #break
+        if mark5==0:
+            if 'MODS end' in Line1:
+                MODSEndLoc=j
+                mark5=1
     #For the size of BBXDataBuffer.log
     if i==1:
         if BBXLastLineLoc>0:
             for k in range (SubsLoc,BBXLastLineLoc+1):
                 f2.write(str(linecache.getline(file1, k)))
+        elif MODSEndLoc>0 and BBXLastLineLoc==0:
+            for k in range (SubsLoc,MODSEndLoc+1):
+                f2.write(str(linecache.getline(file1, k)))
         else:
-            for k in range (SubsLoc,FirstGPUBBXLoc+1500):
+            for k in range (SubsLoc,FirstGPUBBXLoc+1300):
                 f2.write(str(linecache.getline(file1, k)))
     elif i==2:
         if BBXLastLineLoc>0:
             for k in range(SubsLoc, BBXLastLineLoc+1):
                 f2.write(str(linecache.getline(file1, k)))
+        elif MODSEndLoc>0 and BBXLastLineLoc==0:
+            for k in range (SubsLoc,MODSEndLoc+1):
+                f2.write(str(linecache.getline(file1, k)))
         else:
-            for k in range (SubsLoc,SecondGPUBBXLoc + 1500):
+            for k in range (SubsLoc,SecondGPUBBXLoc + 1300):
                 f2.write(str(linecache.getline(file1, k)))
 
     f1.close()
